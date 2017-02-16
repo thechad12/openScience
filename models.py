@@ -4,9 +4,16 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 import sys
 
+WHOOSH_ENABLED = os.environ.get('HEROKU') is None
+enable_search = WHOOSH_ENABLED
+if enable_search:
+	import flask_whooshalchemy as whooshalcemy
+if enable_search:
+	whooshalcemy.whoosh_index(app, Post)
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/cosmos'
-#db = sqlalchemy(app)
+db = sqlalchemy(app)
 
 class User(db.Model):
 	__tablename__ = 'user'
