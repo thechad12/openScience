@@ -3,6 +3,7 @@ import sqlalchemy
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 import sys
+import os
 
 WHOOSH_ENABLED = os.environ.get('HEROKU') is None
 enable_search = WHOOSH_ENABLED
