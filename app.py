@@ -50,7 +50,30 @@ def about():
     """Render the website's about page."""
     return render_template('about.html')
 
+@app.route('/authorize/<provider>')
+def oauth_authorize(provider):
+    if not current_user.is_anonymous():
+        return redirect(url_for('home'))
+    oauth = OAuthSignIn.get_provider(provider)
+    return oauth.authorize()
 
+@app.route('/callback/<provider>')
+def oauth_callback(provider):
+    if not current_user.is_anonymous():
+        return redirect(url_for('home'))
+    oauth = OAuthSignIn.get_provider(provider)
+    social_id, username, email, first_name, last_name = oauth.callback()
+    if social_id is None:
+        flash('Authentication failed')
+        return redirect(url_for('home'))
+    user = User.query(filter_by(social_id))
+    if not user:
+        user = User(id=social_id,email=email,first_name=first_name,
+            last_name=last_name)
+        db.session.add(user)
+        db.session.commit()
+    login_user(user, True)
+    return redirect(url_for('home'))
 ###
 # The functions below should be applicable to all Flask apps.
 ###
