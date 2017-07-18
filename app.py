@@ -1,13 +1,12 @@
-"""
-Flask Documentation:     http://flask.pocoo.org/docs/
-Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
-Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
-
-This file creates your application.
-"""
-
 import os
 from flask import Flask, render_template, request, redirect, url_for
+from models import FacebookSignIn, OAuthSignIn, User, Post
+import json
+import requests
+import random
+import string
+from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow, FlowExchangeError
+
 
 app = Flask(__name__)
 
@@ -44,6 +43,15 @@ def home():
     """Render website's home page."""
     return render_template('home.html')
 
+@app.route('/user/<email>')
+def user(email):
+    user = User.query.filter_by(email=email).first()
+    if user == None:
+        flash('User %s not found.' % email)
+        return redirect(url_for('home'))
+    return render_template('user.html',
+                            user=user,
+                            posts=posts)
 
 @app.route('/about/')
 def about():
@@ -74,9 +82,41 @@ def oauth_callback(provider):
         db.session.commit()
     login_user(user, True)
     return redirect(url_for('home'))
-###
-# The functions below should be applicable to all Flask apps.
-###
+
+@app.route('/login')
+def show_login():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+        for x in range(32))
+    login_session['state'] = state
+    return render_template('login.html', STATE=state)
+
+@app.route('/logout')
+def logout():
+    session.delete(login_session)
+    session.commit()
+    flash("You have successfully been logged out")
+    return render_template('home.html')
+
+def create_user(login_session):
+    newUser = User(first_name=login_session['first_name'],
+        last_name=login_session['last_name'], email=login_session['email'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+
+@app.route('/follow/<email>')
+def follow(email):
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        flash('User %s not found.' % email)
+        return redirect(url_for('home'))
+    u = user.follow(user)
+    if u is None:
+        return redirect(url_for('home'))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are now following ' + email + '!')
+    return redirect(url_for('home'))
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):

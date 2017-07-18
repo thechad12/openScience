@@ -21,3 +21,4 @@ WTForms
 decorator
 psycopg2
 sqlparse
+oauth2

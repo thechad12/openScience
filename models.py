@@ -27,6 +27,12 @@ class User(db.Model):
 	first_name = db.Column(db.String(120))
 	last_name = db.Column(db.String(120))
 	posts = db.relationship('Post', backref='author', lazy='dynamic')
+	followed = db.relationship('User',
+								secondary=followers,
+								primaryjoin=(followers.c.follower_id == id),
+								secondaryjoin=(followers.c.followed_id == id),
+								backref=db.backref('followers',lazy='dynamic'),
+								lazy=dynamic)
 
 	def __init__(self,email):
 		self.email = email
@@ -59,20 +65,41 @@ class User(db.Model):
 
 	def get_id(self):
 		try:
-			return unicode(self.id)
+			return unicode(self.id) # Python 2
 		except NameError:
-			return str(self.id)
+			return str(self.id)		# Python 3
 
+	def follow(self, user):
+		if not self.is_following(user):
+			self.followed.append(user)
+			return self
+
+	def unfollow(self, user):
+		if self.is_following(user):
+			self.followed.remove(user)
+			return self
+
+	def is_following(self, user):
+		return self.followed.filter(followers.c.followed_id == user.id).count() > 0
+
+	def followed_posts(self):
+		return Post.query.join(followers, (followers.c.followed_id == Post.user_id)).filter(
+			followers.c.follower_id == self.id).order_by(Post.timestamp.desc())
 
 class Post(db.Model):
 	__tablename__ = 'post'
 	id = db.Column(db.Integer, primary_key=True)
-	social_id = db.Column(db.String(64), nullable=False, unique=True)
 	text = db.Column(db.String(2000))
 	title = db.Column(db.String(250))
 	timestamp = db.Column(db.DateTime)
 	user_id = Column(db.Integer, db.ForeignKey('user.id'))
 	user = relationship(User)
+	likes = db.relationship('User',
+							secondary=likes,
+							primaryjoin=(likes.c.like_id == id),
+							secondaryjoin=(likes.c.liked_id == id),
+							backref=db.backref('likes', lazy='dynamic'),
+							lazy='dynamic')
 
 	@property
 	def serialize(self):
@@ -82,6 +109,20 @@ class Post(db.Model):
 			'user_id': self.user_id,
 			'text': self.text
 		}
+
+	def like(self, post):
+		if not self.is_liked(post):
+			self.liked.append(post)
+			return self
+
+	def unlike(self, post):
+		if self.is_liked(post):
+			self.liked.remove(post)
+			return self
+
+	def is_liked(self, post):
+		return self.liked.filter(likes.c.liked_id == post.id).count() > 0
+
 
 class OAuthSignIn(object):
 	providers = None
@@ -149,3 +190,12 @@ class FacebookSignIn(OAuthSignIn):
 			me.get('email')
 			)
 
+followers = db.Table('followers',
+	db.Column('follower_id',db.Integer,db.ForeignKey('user.id')),
+	db.Column('followed_id',db.Integer,db.ForeignKey('user.id'))
+	)
+
+likes = db.Table('likes',
+	db.Column('like_id',db.Integer,db.ForeignKey('user.id')),
+	db.Column('liked_id',db.Integer,db.ForeignKey('post.id'))
+	)
