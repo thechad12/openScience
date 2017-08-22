@@ -2,6 +2,7 @@
 
 import unittest
 from app import app
+from models import User, FacebookSignIn, Post
 
 
 class TestApp(unittest.TestCase):
