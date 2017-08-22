@@ -10,29 +10,29 @@ from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow, Fl
 
 app = Flask(__name__)
 
-facebook_id = json.loads(open('facebook.json','r')
-    .read())['web']['client_id']
-facebook_secret = json.loads(open('facebook.json','r')
-    .read())['web']['secret_key']
+#facebook_id = json.loads(open('facebook.json','r')
+#    .read())['web']['client_id']
+#facebook_secret = json.loads(open('facebook.json','r')
+#    .read())['web']['secret_key']
 
-google_id = json.loads(open('google.json','r')
-    .read())['web']['client_id']
-google_secret = json.loads(open('google.json','r')
-    .read())['web']['secret_key']
+#google_id = json.loads(open('google.json','r')
+#    .read())['web']['client_id']
+#google_secret = json.loads(open('google.json','r')
+#    .read())['web']['secret_key']
 
 APPLICATION_NAME = 'open cosmos'
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
-app.config['OAUTH_CREDENTIALS'] = {
-    'facebook': {
-        'id': facebook_id,
-        'secret': facebook_secret
-    },
-    'google': {
-        'id': google_id,
-        'secret': google_secret
-    }
-}
+#app.config['OAUTH_CREDENTIALS'] = {
+#    'facebook': {
+#        'id': facebook_id,
+#        'secret': facebook_secret
+#    },
+#    'google': {
+#        'id': google_id,
+#        'secret': google_secret
+#    }
+#}
 
 @app.route('/')
 def home():

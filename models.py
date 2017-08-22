@@ -6,19 +6,24 @@ from flask.ext.login import LoginManager, UserMixin
 from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 import os
-from app import db
-
-WHOOSH_ENABLED = os.environ.get('HEROKU') is None
-enable_search = WHOOSH_ENABLED
-if enable_search:
-	import flask_whooshalchemy as whooshalcemy
-if enable_search:
-	whooshalcemy.whoosh_index(app, Post)
+import app
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/cosmos'
 db = SQLAlchemy(app)
 lm = LoginManager(app)
+
+WHOOSH_ENABLED = os.environ.get('HEROKU') is None
+
+followers = db.Table('followers',
+	db.Column('follower_id',db.Integer,db.ForeignKey('user.id')),
+	db.Column('followed_id',db.Integer,db.ForeignKey('user.id'))
+	)
+
+likes = db.Table('likes',
+	db.Column('like_id',db.Integer,db.ForeignKey('user.id')),
+	db.Column('liked_id',db.Integer,db.ForeignKey('post.id'))
+	)
 
 class User(db.Model):
 	__tablename__ = 'user'
@@ -32,7 +37,7 @@ class User(db.Model):
 								primaryjoin=(followers.c.follower_id == id),
 								secondaryjoin=(followers.c.followed_id == id),
 								backref=db.backref('followers',lazy='dynamic'),
-								lazy=dynamic)
+								lazy='dynamic')
 
 	def __init__(self,email):
 		self.email = email
@@ -189,13 +194,3 @@ class FacebookSignIn(OAuthSignIn):
 			me.get('email').split('@')[0],
 			me.get('email')
 			)
-
-followers = db.Table('followers',
-	db.Column('follower_id',db.Integer,db.ForeignKey('user.id')),
-	db.Column('followed_id',db.Integer,db.ForeignKey('user.id'))
-	)
-
-likes = db.Table('likes',
-	db.Column('like_id',db.Integer,db.ForeignKey('user.id')),
-	db.Column('liked_id',db.Integer,db.ForeignKey('post.id'))
-	)
