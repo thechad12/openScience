@@ -59,11 +59,10 @@ class TestApp(unittest.TestCase):
         assert u2.followers.count() == 0
 
     def test_follow_posts(self):
-        # make four users
-        u1 = User(nickname='john', email='john@example.com')
-        u2 = User(nickname='susan', email='susan@example.com')
-        u3 = User(nickname='mary', email='mary@example.com')
-        u4 = User(nickname='david', email='david@example.com')
+        u1 = User(first_name='john', last_name='smith', email='john@smith.com')
+        u2 = User(first_name='susan', last_name='dow', email='susan@test.com')
+        u3 = User(first_name='mary', last_name='dow', email='mary@test.com')
+        u4 = User(first_name='david', last_name='dow', email='david@test.com')
         db.session.add(u1)
         db.session.add(u2)
         db.session.add(u3)
