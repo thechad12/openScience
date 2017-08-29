@@ -6,11 +6,10 @@ from flask.ext.login import LoginManager, UserMixin
 from flask.ext.sqlalchemy import SQLAlchemy
 import sys
 import os
-from app import app
-
+import app
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cosmos.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/cosmos'
 db = SQLAlchemy(app)
 lm = LoginManager(app)
 
