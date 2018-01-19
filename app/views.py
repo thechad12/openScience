@@ -1,6 +1,8 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from models import FacebookSignIn, OAuthSignIn, User, Post
+import logging
+from logging.handlers import RotatingFileHandler
 import json
 import requests
 import random
@@ -9,6 +11,7 @@ from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow, Fl
 
 
 app = Flask(__name__)
+
 
 #facebook_id = json.loads(open('facebook.json','r')
 #    .read())['web']['client_id']
@@ -20,6 +23,7 @@ app = Flask(__name__)
 #google_secret = json.loads(open('google.json','r')
 #    .read())['web']['secret_key']
 
+# Sets application name to open cosmos
 APPLICATION_NAME = 'open cosmos'
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
@@ -51,6 +55,7 @@ def user(email):
 @app.route('/about/')
 def about():
     return render_template('about.html')
+
 
 @app.route('/authorize/<provider>')
 def oauth_authorize(provider):
@@ -130,5 +135,4 @@ def page_not_found(error):
     return render_template('404.html'), 404
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
